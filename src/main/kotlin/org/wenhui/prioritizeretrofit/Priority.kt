@@ -8,7 +8,7 @@ const val PRIORITY_LOW = -2
 const val PRIORITY_LOWEST = -4
 
 /**
- * Use to mark a request priority
+ * Use to mark a request's priority
  */
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
