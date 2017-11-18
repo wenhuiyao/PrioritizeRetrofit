@@ -74,24 +74,24 @@ class CallDispatcherTest {
 
         val countDownLatch = CountDownLatch(5)
         val executions = CopyOnWriteArrayList<Int>()
-        val runnable0 = PrioritizedRunnableAdapter(PRIORITY_LOWEST) {
-            executions.add(PRIORITY_LOWEST)
+        val runnable0 = PrioritizedRunnableAdapter(Priorities.LOWEST) {
+            executions.add(Priorities.LOWEST.value)
             countDownLatch.countDown()
         }
-        val runnable1 = PrioritizedRunnableAdapter(PRIORITY_LOW) {
-            executions.add(PRIORITY_LOW)
+        val runnable1 = PrioritizedRunnableAdapter(Priorities.LOW) {
+            executions.add(Priorities.LOW.value)
             countDownLatch.countDown()
         }
-        val runnable2 = PrioritizedRunnableAdapter(PRIORITY_NORMAL) {
-            executions.add(PRIORITY_NORMAL)
+        val runnable2 = PrioritizedRunnableAdapter(Priorities.NORMAL) {
+            executions.add(Priorities.NORMAL.value)
             countDownLatch.countDown()
         }
-        val runnable3 = PrioritizedRunnableAdapter(PRIORITY_HIGH) {
-            executions.add(PRIORITY_HIGH)
+        val runnable3 = PrioritizedRunnableAdapter(Priorities.HIGH) {
+            executions.add(Priorities.HIGH.value)
             countDownLatch.countDown()
         }
-        val runnable4 = PrioritizedRunnableAdapter(PRIORITY_HIGHEST) {
-            executions.add(PRIORITY_HIGHEST)
+        val runnable4 = PrioritizedRunnableAdapter(Priorities.HIGHEST) {
+            executions.add(Priorities.HIGHEST.value)
             countDownLatch.countDown()
         }
 
@@ -106,11 +106,11 @@ class CallDispatcherTest {
         countDownLatch.await(400, TimeUnit.MILLISECONDS)
 
         assertThat(executions.size).isEqualTo(5)
-        assertThat(executions[0]).isEqualTo(PRIORITY_HIGHEST)
-        assertThat(executions[1]).isEqualTo(PRIORITY_HIGH)
-        assertThat(executions[2]).isEqualTo(PRIORITY_NORMAL)
-        assertThat(executions[3]).isEqualTo(PRIORITY_LOW)
-        assertThat(executions[4]).isEqualTo(PRIORITY_LOWEST)
+        assertThat(executions[0]).isEqualTo(Priorities.HIGHEST.value)
+        assertThat(executions[1]).isEqualTo(Priorities.HIGH.value)
+        assertThat(executions[2]).isEqualTo(Priorities.NORMAL.value)
+        assertThat(executions[3]).isEqualTo(Priorities.LOW.value)
+        assertThat(executions[4]).isEqualTo(Priorities.LOWEST.value)
     }
 
 }

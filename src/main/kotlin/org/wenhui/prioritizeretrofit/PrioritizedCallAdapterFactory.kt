@@ -47,7 +47,7 @@ class PrioritizedCallAdapterFactory private constructor(private val callFactory:
 
         val responseType = CallAdapter.Factory.getParameterUpperBound(0, returnType)
 
-        var priority = PRIORITY_NORMAL
+        var priority = Priorities.NORMAL
         annotations?.forEach {
             if (it is Priority) {
                 priority = it.value
@@ -58,7 +58,7 @@ class PrioritizedCallAdapterFactory private constructor(private val callFactory:
         return PrioritizeCallAdapter<Any>(priority, responseType, callFactory, retrofit.callbackExecutor())
     }
 
-    private class PrioritizeCallAdapter<R>(private val priority: Int,
+    private class PrioritizeCallAdapter<R>(private val priority: Priorities,
                                            private val type: Type,
                                            private val factory: PrioritizedCallFactory,
                                            private val callbackExecutor: Executor?) : CallAdapter<R, Call<R>> {
