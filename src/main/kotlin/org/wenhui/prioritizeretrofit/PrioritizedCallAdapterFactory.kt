@@ -19,8 +19,8 @@ import java.util.concurrent.Executor
  * }
  * ```
  *
- * **NOTE: the asynchronous [Call.enqueue] will no longer go through [okhttp3.Dispatcher], so
- * [okhttp3.Dispatcher.idleCallback] should not be used.**
+ * *NOTE: the asynchronous [Call.enqueue] will no longer go through [okhttp3.Dispatcher], so
+ * [okhttp3.Dispatcher.idleCallback] should not be used.*
  *
  */
 class PrioritizedCallAdapterFactory private constructor(private val callFactory: PrioritizedCallFactory)

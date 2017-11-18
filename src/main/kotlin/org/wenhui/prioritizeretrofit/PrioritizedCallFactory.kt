@@ -18,7 +18,7 @@ import java.util.concurrent.Executor
 class PrioritizedCallFactory private constructor(private val dispatcher: CallDispatcher) {
 
     companion object {
-        @JvmStatic fun create() = PrioritizedCallFactory(CallDispatcher(4))
+        @JvmStatic fun create() = PrioritizedCallFactory(CallDispatcher())
         @JvmStatic fun create(dispatcher: CallDispatcher) = PrioritizedCallFactory(dispatcher)
     }
 

@@ -8,23 +8,25 @@ import java.util.concurrent.TimeUnit
 /**
  * Policy on when a call will be executed
  */
-class CallDispatcher(nThreads: Int) {
+class CallDispatcher(threadPoolSize: Int) {
+
+    constructor(): this(PLATFORM.corePoolSize())
 
     private val queue: PriorityBlockingQueue<Runnable>
     private val executor: ExecutorService
 
     init {
-        if (nThreads < 1) {
-            throw IllegalArgumentException("nThreads can't be less than 1")
+        if (threadPoolSize < 1) {
+            throw IllegalArgumentException("threadPoolSize can't be less than 1")
         }
 
-        queue = PriorityBlockingQueue(nThreads, Comparator<Runnable> { o1, o2 ->
+        queue = PriorityBlockingQueue(threadPoolSize, Comparator<Runnable> { o1, o2 ->
             val left = o1 as PrioritizedRunnable
             val right = o2 as PrioritizedRunnable
             right.priority - left.priority
         })
 
-        executor = ThreadPoolExecutor(nThreads, nThreads, 0, TimeUnit.SECONDS, queue)
+        executor = ThreadPoolExecutor(threadPoolSize, threadPoolSize, 0, TimeUnit.SECONDS, queue, PLATFORM.threadFactory())
     }
 
     internal fun dispatch(runnable: PrioritizedRunnable) {
