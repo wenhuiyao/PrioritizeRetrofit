@@ -25,17 +25,17 @@ class PrioritizedCallFactory private constructor(private val dispatcher: CallDis
     /**
      * Create a new [Call] instance that will support priority.
      *
-     * @param priority See [PRIORITY_HIGHEST], [PRIORITY_HIGH], [PRIORITY_NORMAL], [PRIORITY_LOW], [PRIORITY_LOWEST]
+     * @param priority
      * @param callbackExecutor An executor that will be used to execute [Callback], if passing null, the callback will be
      *      delivered in the same thread as the request is made
      */
-    fun <T> createCall(call: Call<T>, priority: Int, callbackExecutor: Executor?): Call<T> {
+    fun <T> createCall(call: Call<T>, priority: Priorities, callbackExecutor: Executor?): Call<T> {
         return PrioritizedCall(call, priority, dispatcher, callbackExecutor)
     }
 }
 
 private class PrioritizedCall<T>(private val realCall: Call<T>,
-                                 override val priority: Int,
+                                 override val priority: Priorities,
                                  private val dispatcher: CallDispatcher,
                                  private val callbackExecutor: Executor?) : Call<T> by realCall, PrioritizedRunnable {
 
@@ -47,14 +47,6 @@ private class PrioritizedCall<T>(private val realCall: Call<T>,
     }
 
     override fun clone(): Call<T> = PrioritizedCall(realCall.clone(), priority, dispatcher, callbackExecutor)
-
-    override fun cancel() {
-        realCall.cancel()
-        if (dispatcher.remove(this)) {
-            // notify callback that call is cancelled
-            onFailure(IOException("Cancelled!"))
-        }
-    }
 
     override fun run() {
         if (isCanceled) {

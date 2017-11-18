@@ -66,21 +66,21 @@ class PrioritizedCallAdapterFactoryTest {
 
         service.getLowPriorityExamples().enqueue(object: CallbackAdapter<String>() {
             override fun onResponse(call: Call<String>?, response: Response<String>?) {
-                executeOrder.add(PRIORITY_LOW)
+                executeOrder.add(Priorities.LOW.value)
                 latch.countDown()
             }
 
         })
         service.getNormalPriorityExamples().enqueue(object: CallbackAdapter<String>() {
             override fun onResponse(call: Call<String>?, response: Response<String>?) {
-                executeOrder.add(PRIORITY_NORMAL)
+                executeOrder.add(Priorities.NORMAL.value)
                 latch.countDown()
             }
 
         })
         service.getHighPriorityExamples().enqueue(object: CallbackAdapter<String>() {
             override fun onResponse(call: Call<String>?, response: Response<String>?) {
-                executeOrder.add(PRIORITY_HIGH)
+                executeOrder.add(Priorities.HIGH.value)
                 latch.countDown()
             }
         })
@@ -89,9 +89,9 @@ class PrioritizedCallAdapterFactoryTest {
         lock.set(false)
         
         assertThat(executeOrder.size).isEqualTo(3)
-        assertThat(executeOrder[0]).isEqualTo(PRIORITY_HIGH)
-        assertThat(executeOrder[1]).isEqualTo(PRIORITY_NORMAL)
-        assertThat(executeOrder[2]).isEqualTo(PRIORITY_LOW)
+        assertThat(executeOrder[0]).isEqualTo(Priorities.HIGH.value)
+        assertThat(executeOrder[1]).isEqualTo(Priorities.NORMAL.value)
+        assertThat(executeOrder[2]).isEqualTo(Priorities.LOW.value)
     }
 
     @Test fun returnNullWhenReturnTypeIsNotNull() {
@@ -130,14 +130,14 @@ class PrioritizedCallAdapterFactoryTest {
         @GET("/stub")
         fun block(): Call<String>
 
-        @Priority(PRIORITY_LOW)
+        @Priority(Priorities.LOW)
         @GET("/v1")
         fun getLowPriorityExamples(): Call<String>
 
         @POST("/v2")
         fun getNormalPriorityExamples(): Call<String>
 
-        @Priority(PRIORITY_HIGH)
+        @Priority(Priorities.HIGH)
         @GET("/v3")
         fun getHighPriorityExamples(): Call<String>
 

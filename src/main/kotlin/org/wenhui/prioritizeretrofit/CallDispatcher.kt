@@ -21,7 +21,7 @@ class CallDispatcher(nThreads: Int) {
         queue = PriorityBlockingQueue(nThreads, Comparator<Runnable> { o1, o2 ->
             val left = o1 as PrioritizedRunnable
             val right = o2 as PrioritizedRunnable
-            right.priority - left.priority
+            right.priority.value - left.priority.value
         })
 
         executor = ThreadPoolExecutor(nThreads, nThreads, 0, TimeUnit.SECONDS, queue)
@@ -39,7 +39,7 @@ class CallDispatcher(nThreads: Int) {
 }
 
 internal interface PrioritizedRunnable : Runnable {
-    val priority: Int
+    val priority: Priorities
 }
 
 

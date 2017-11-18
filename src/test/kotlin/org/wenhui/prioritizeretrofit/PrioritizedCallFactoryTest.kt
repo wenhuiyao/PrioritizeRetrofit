@@ -9,7 +9,6 @@ import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.wenhui.prioritizeretrofit.helpers.CallbackAdapter
-import org.wenhui.prioritizeretrofit.helpers.PrioritizedRunnableAdapter
 import org.wenhui.prioritizeretrofit.helpers.ToStringConverterFactory
 import org.wenhui.prioritizeretrofit.helpers.any
 import retrofit2.Call
@@ -20,6 +19,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import org.wenhui.prioritizeretrofit.Priorities.NORMAL
 
 
 class PrioritizedCallFactoryTest {
@@ -39,13 +39,13 @@ class PrioritizedCallFactoryTest {
 
     @Test fun createNewCallThatIsNotTheSameCall() {
         val mockCall = mock(Call::class.java)
-        val newCall = factory.createCall(mockCall, PRIORITY_NORMAL, null)
+        val newCall = factory.createCall(mockCall, NORMAL, null)
         assertThat(mockCall).isNotSameAs(newCall)
     }
 
     @Test fun enqueue() {
         val oldCall = spy(retrofit.create(ExampleService::class.java).getExamples())
-        val newCall = factory.createCall(oldCall, PRIORITY_NORMAL, null)
+        val newCall = factory.createCall(oldCall, NORMAL, null)
         newCall.enqueue(null)
 
         // Doesn't call the oldCall's enqueue method
@@ -57,27 +57,35 @@ class PrioritizedCallFactoryTest {
 
     @Test fun clone() {
         val oldCall = retrofit.create(ExampleService::class.java).getExamples()
-        val call = factory.createCall(oldCall, PRIORITY_NORMAL, null)
+        val call = factory.createCall(oldCall, NORMAL, null)
         assertThat(call.clone()).isNotSameAs(call)
     }
 
     @Test fun cancel() {
-        val lock = CountDownLatch(1)
-        val blocking = PrioritizedRunnableAdapter { lock.await() }
-        callDispatcher.dispatch(blocking)
+        val oldCall = retrofit.create(ExampleService::class.java).getExamples()
+        val call = factory.createCall(oldCall, NORMAL, null)
 
-        try {
-            val oldCall = retrofit.create(ExampleService::class.java).getExamples()
-            val call = factory.createCall(oldCall, PRIORITY_NORMAL, null)
-            call.enqueue(null)
-            assertThat(callDispatcher.isIdle()).isFalse()
+        // Cancel should remove the call from callDispatcher
+        call.cancel()
+        assertThat(oldCall.isCanceled).isTrue()
+        assertThat(call.isCanceled).isTrue()
+    }
 
-            // Cancel should remoev the call from callDispatcher
-            call.cancel()
-            assertThat(callDispatcher.isIdle()).isTrue()
-        } finally {
-            lock.countDown()
-        }
+    @Test fun execute() {
+        val oldCall = spy(retrofit.create(ExampleService::class.java).getExamples())
+        val call = factory.createCall(oldCall, NORMAL, null)
+
+        // Cancel should remove the call from callDispatcher
+        call.execute()
+        verify(oldCall, times(1)).execute()
+    }
+
+    @Test fun request() {
+        val oldCall = retrofit.create(ExampleService::class.java).getExamples()
+        val call = factory.createCall(oldCall, NORMAL, null)
+
+        val request = call.request()
+        assertThat(oldCall.request()).isSameAs(request)
     }
 
     @Test fun dispatchResponseToCallbackExecutor() {
@@ -87,7 +95,7 @@ class PrioritizedCallFactoryTest {
             it.run()
         }
         val rCall = retrofit.create(ExampleService::class.java).getExamples()
-        val call = factory.createCall(rCall, PRIORITY_NORMAL, callbackExecutor)
+        val call = factory.createCall(rCall, NORMAL, callbackExecutor)
         val countDownLatch = CountDownLatch(1)
         call.enqueue(object : CallbackAdapter<String>() {
             override fun onResponse(call: Call<String>?, response: Response<String>?) {
@@ -109,7 +117,7 @@ class PrioritizedCallFactoryTest {
         }
 
         val rCall = retrofit.create(ExampleService::class.java).getExamples()
-        val call = factory.createCall(rCall, PRIORITY_NORMAL, callbackExecutor)
+        val call = factory.createCall(rCall, NORMAL, callbackExecutor)
         val onFailureCalled = AtomicBoolean(false)
         call.enqueue(object : CallbackAdapter<String>() {
             override fun onFailure(call: Call<String>?, t: Throwable?) {
@@ -128,7 +136,7 @@ class PrioritizedCallFactoryTest {
 
     @Test fun makeSureToRemoveCallFromCallDispatcherWhenCancel() {
         val oldCall = retrofit.create(ExampleService::class.java).getExamples()
-        val call = factory.createCall(oldCall, PRIORITY_NORMAL, null)
+        val call = factory.createCall(oldCall, NORMAL, null)
         call.cancel()
         assertThat(call.isCanceled).isTrue()
     }
@@ -139,13 +147,13 @@ class PrioritizedCallFactoryTest {
 
         val lock = CountDownLatch(1)
         var callbackRunnable: Runnable? = null
-        val call = factory.createCall(mockCall, PRIORITY_NORMAL, Executor {
+        val call = factory.createCall(mockCall, NORMAL, Executor {
             callbackRunnable = it
             lock.countDown()
         })
 
         val onFailureCalled = AtomicBoolean(false)
-        call.enqueue(object: CallbackAdapter<String>(){
+        call.enqueue(object : CallbackAdapter<String>() {
             override fun onFailure(call: Call<String>?, t: Throwable?) {
                 onFailureCalled.set(true)
             }
@@ -157,9 +165,9 @@ class PrioritizedCallFactoryTest {
         assertThat(onFailureCalled.get()).isTrue()
     }
 
-    @Test fun dispatchResponseSynchronouslyWhenCallbackExecutorNull(){
+    @Test fun dispatchResponseSynchronouslyWhenCallbackExecutorNull() {
         val rCall = retrofit.create(ExampleService::class.java).getExamples()
-        val call = factory.createCall(rCall, PRIORITY_NORMAL, null)
+        val call = factory.createCall(rCall, NORMAL, null)
 
         val countDownLatch = CountDownLatch(1)
         val callbackExecuted = AtomicBoolean(false)
@@ -179,10 +187,10 @@ class PrioritizedCallFactoryTest {
         Mockito.`when`(mockCall.execute()).thenThrow(RuntimeException())
 
         val countDownLatch = CountDownLatch(1)
-        val call = factory.createCall(mockCall, PRIORITY_NORMAL, null)
+        val call = factory.createCall(mockCall, NORMAL, null)
 
         val onFailureCalled = AtomicBoolean(false)
-        call.enqueue(object: CallbackAdapter<String>(){
+        call.enqueue(object : CallbackAdapter<String>() {
             override fun onFailure(call: Call<String>?, t: Throwable?) {
                 onFailureCalled.set(true)
                 countDownLatch.countDown()
@@ -194,7 +202,7 @@ class PrioritizedCallFactoryTest {
     }
 
     private interface ExampleService {
-        @Priority(PRIORITY_HIGH)
+        @Priority(Priorities.HIGH)
         @GET("/")
         fun getExamples(): Call<String>
     }
