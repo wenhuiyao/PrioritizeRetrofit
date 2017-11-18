@@ -3,6 +3,7 @@ package org.wenhui.prioritizeretrofit
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test
+import org.wenhui.prioritizeretrofit.helpers.PrioritizedRunnableAdapter
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -19,7 +20,7 @@ class CallDispatcherTest {
     @Test fun dispatch() {
         val isRan = AtomicBoolean(false)
         val countDownLatch = CountDownLatch(1)
-        val runnable = PrioritizedRunnableImpl {
+        val runnable = PrioritizedRunnableAdapter {
             isRan.set(true)
             countDownLatch.countDown()
         }
@@ -30,10 +31,10 @@ class CallDispatcherTest {
 
     @Test fun isIdle() {
         val lock = CountDownLatch(1)
-        val runnable1 = PrioritizedRunnableImpl {
+        val runnable1 = PrioritizedRunnableAdapter {
             lock.await(200, TimeUnit.MILLISECONDS)
         }
-        val runnable2 = PrioritizedRunnableImpl {}
+        val runnable2 = PrioritizedRunnableAdapter {}
         dispatcher.dispatch(runnable1)
         dispatcher.dispatch(runnable2)
 
@@ -47,10 +48,10 @@ class CallDispatcherTest {
     @Test fun remove() {
         val isRan = AtomicBoolean(false)
         val lock = CountDownLatch(1)
-        val runnable1 = PrioritizedRunnableImpl {
+        val runnable1 = PrioritizedRunnableAdapter {
             lock.await(200, TimeUnit.MILLISECONDS)
         }
-        val runnable2 = PrioritizedRunnableImpl {
+        val runnable2 = PrioritizedRunnableAdapter {
             isRan.set(true)
         }
         dispatcher.dispatch(runnable1)
@@ -67,29 +68,29 @@ class CallDispatcherTest {
 
     @Test fun executeOnPriority() {
         val lock = CountDownLatch(1)
-        val block = PrioritizedRunnableImpl {
+        val block = PrioritizedRunnableAdapter {
             lock.await()
         }
 
         val countDownLatch = CountDownLatch(5)
         val executions = CopyOnWriteArrayList<Int>()
-        val runnable0 = PrioritizedRunnableImpl(PRIORITY_LOWEST) {
+        val runnable0 = PrioritizedRunnableAdapter(PRIORITY_LOWEST) {
             executions.add(PRIORITY_LOWEST)
             countDownLatch.countDown()
         }
-        val runnable1 = PrioritizedRunnableImpl(PRIORITY_LOW) {
+        val runnable1 = PrioritizedRunnableAdapter(PRIORITY_LOW) {
             executions.add(PRIORITY_LOW)
             countDownLatch.countDown()
         }
-        val runnable2 = PrioritizedRunnableImpl(PRIORITY_NORMAL) {
+        val runnable2 = PrioritizedRunnableAdapter(PRIORITY_NORMAL) {
             executions.add(PRIORITY_NORMAL)
             countDownLatch.countDown()
         }
-        val runnable3 = PrioritizedRunnableImpl(PRIORITY_HIGH) {
+        val runnable3 = PrioritizedRunnableAdapter(PRIORITY_HIGH) {
             executions.add(PRIORITY_HIGH)
             countDownLatch.countDown()
         }
-        val runnable4 = PrioritizedRunnableImpl(PRIORITY_HIGHEST) {
+        val runnable4 = PrioritizedRunnableAdapter(PRIORITY_HIGHEST) {
             executions.add(PRIORITY_HIGHEST)
             countDownLatch.countDown()
         }
@@ -112,10 +113,4 @@ class CallDispatcherTest {
         assertThat(executions[4]).isEqualTo(PRIORITY_LOWEST)
     }
 
-    private open class PrioritizedRunnableImpl(override val priority: Int = PRIORITY_NORMAL,
-                                               private val block: () -> Unit) : PrioritizedRunnable {
-        override fun run() {
-            block()
-        }
-    }
 }

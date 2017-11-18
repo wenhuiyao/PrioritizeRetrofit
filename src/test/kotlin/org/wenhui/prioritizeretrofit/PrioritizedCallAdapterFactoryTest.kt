@@ -11,9 +11,12 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.RecordedRequest
-import org.assertj.core.api.Assertions
-import retrofit2.Callback
+import org.assertj.core.api.Assertions.assertThat
+import org.wenhui.prioritizeretrofit.helpers.CallbackAdapter
+import org.wenhui.prioritizeretrofit.helpers.ToStringConverterFactory
 import retrofit2.Response
+import java.lang.reflect.ParameterizedType
+import java.lang.reflect.Type
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -85,10 +88,41 @@ class PrioritizedCallAdapterFactoryTest {
         latch.await(1, TimeUnit.MINUTES)
         lock.set(false)
         
-        Assertions.assertThat(executeOrder.size).isEqualTo(3)
-        Assertions.assertThat(executeOrder[0]).isEqualTo(PRIORITY_HIGH)
-        Assertions.assertThat(executeOrder[1]).isEqualTo(PRIORITY_NORMAL)
-        Assertions.assertThat(executeOrder[2]).isEqualTo(PRIORITY_LOW)
+        assertThat(executeOrder.size).isEqualTo(3)
+        assertThat(executeOrder[0]).isEqualTo(PRIORITY_HIGH)
+        assertThat(executeOrder[1]).isEqualTo(PRIORITY_NORMAL)
+        assertThat(executeOrder[2]).isEqualTo(PRIORITY_LOW)
+    }
+
+    @Test fun returnNullWhenReturnTypeIsNotNull() {
+        val returnType = String::class.java
+        val adapter = PrioritizedCallAdapterFactory.create().get(returnType, arrayOf(), retrofit)
+        assertThat(adapter).isNull()
+    }
+
+    @Test(expected = IllegalStateException::class)
+    fun throwExceptionWhenReturnTypeIsNotParameterizedType() {
+        val returnType = Call::class.java
+        PrioritizedCallAdapterFactory.create().get(returnType, arrayOf(), retrofit)
+    }
+
+    @Test fun returnAdapterWhenReturnTypeIsParameterizedCallType() {
+        val returnType = object: ParameterizedType {
+            override fun getRawType(): Type {
+                return Call::class.java
+            }
+
+            override fun getOwnerType(): Type {
+                return Call::class.java
+            }
+
+            override fun getActualTypeArguments(): Array<Type> {
+                return arrayOf(String::class.java)
+            }
+
+        }
+        val adapter = PrioritizedCallAdapterFactory.create().get(returnType, arrayOf(), retrofit)
+        assertThat(adapter).isNotNull()
     }
 
     private interface ExampleService {

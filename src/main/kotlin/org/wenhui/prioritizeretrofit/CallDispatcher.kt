@@ -5,7 +5,9 @@ import java.util.concurrent.PriorityBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
-
+/**
+ * Policy on when a call will be executed
+ */
 class CallDispatcher(nThreads: Int) {
 
     private val queue: PriorityBlockingQueue<Runnable>

@@ -7,7 +7,22 @@ import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.util.concurrent.Executor
 
-
+/**
+ * A [retrofit2.CallAdapter.Factory] that adapts a call instance, and return a prioritized call instance.
+ *
+ * Usage:
+ * ```
+ * interface FooService {
+ *     @Priority(PRIORITY.HIGH) // add priority annotation, that's it
+ *     @GET("/foo")
+ *     fun getFoo(): Call<String>
+ * }
+ * ```
+ *
+ * **NOTE: the asynchronous [Call.enqueue] will no longer go through [okhttp3.Dispatcher], so
+ * [okhttp3.Dispatcher.idleCallback] should not be used.**
+ *
+ */
 class PrioritizedCallAdapterFactory private constructor(private val callFactory: PrioritizedCallFactory)
     : CallAdapter.Factory() {
 
