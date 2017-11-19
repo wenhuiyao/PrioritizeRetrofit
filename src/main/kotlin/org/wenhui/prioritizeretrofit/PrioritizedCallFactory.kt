@@ -46,26 +46,43 @@ private class PrioritizedCall<T>(private val realCall: Call<T>,
         dispatcher.dispatch(this)
     }
 
+    override fun cancel() {
+        realCall.cancel()
+        if (dispatcher.remove(this)) {
+            dispatcher.dispatch(object : PrioritizedRunnable {
+
+                // Dispatch cancel exception immediately, so the reference to callback can be removed immediately
+                // to avoid any temporarily memory leak
+                override val priority = Priorities.HIGHEST
+
+                override fun run() = onFailure(CancelException())
+            })
+        }
+    }
+
     override fun clone(): Call<T> = PrioritizedCall(realCall.clone(), priority, dispatcher, callbackExecutor)
 
     override fun run() {
         if (isCanceled) {
-            onFailure(IOException("Cancelled!"))
+            onFailure(CancelException())
             return
         }
 
+        var response: Response<T>? = null
         try {
-            onResponse(realCall.execute())
+            response = realCall.execute()
         } catch (error: Throwable) {
             onFailure(error)
         }
+
+        response?.let { onResponse(it) }
     }
 
     private fun onResponse(response: Response<T>) {
         val cb = callback ?: return
         callbackExecutor?.execute {
             if (realCall.isCanceled) {
-                cb.onFailure(this, IOException("Cancelled!"))
+                cb.onFailure(this, CancelException())
             } else {
                 cb.onResponse(this, response)
             }
@@ -80,3 +97,5 @@ private class PrioritizedCall<T>(private val realCall: Call<T>,
     }
 
 }
+
+private class CancelException : IOException("Cancelled!")

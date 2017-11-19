@@ -34,7 +34,11 @@ class CallDispatcherTest {
         val runnable1 = PrioritizedRunnableAdapter {
             lock.await(200, TimeUnit.MILLISECONDS)
         }
-        val runnable2 = PrioritizedRunnableAdapter {}
+
+        val countDownLatch = CountDownLatch(1)
+        val runnable2 = PrioritizedRunnableAdapter {
+            countDownLatch.countDown()
+        }
         dispatcher.dispatch(runnable1)
         dispatcher.dispatch(runnable2)
 
@@ -43,6 +47,9 @@ class CallDispatcherTest {
         } finally {
             lock.countDown()
         }
+
+        countDownLatch.await()
+        assertThat(dispatcher.isIdle()).isTrue()
     }
 
     @Test fun remove() {
@@ -64,6 +71,8 @@ class CallDispatcherTest {
         }
         // runnable2 is removed, so it should never be executed
         assertThat(isRan.get()).isFalse()
+        // runnable1 is already dispatched, so remove should return false
+        assertThat(dispatcher.remove(runnable1)).isFalse()
     }
 
     @Test fun executeOnPriority() {

@@ -1,13 +1,20 @@
 package org.wenhui.prioritizeretrofit
 
+import junit.framework.Assert.fail
+import okhttp3.mockwebserver.Dispatcher
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.RecordedRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.wenhui.prioritizeretrofit.Priorities.HIGH
 import org.wenhui.prioritizeretrofit.helpers.CallbackAdapter
 import org.wenhui.prioritizeretrofit.helpers.ToStringConverterFactory
 import org.wenhui.prioritizeretrofit.helpers.any
@@ -20,6 +27,8 @@ import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import org.wenhui.prioritizeretrofit.Priorities.NORMAL
+import org.wenhui.prioritizeretrofit.helpers.PrioritizedRunnableAdapter
+import java.util.concurrent.atomic.AtomicInteger
 
 
 class PrioritizedCallFactoryTest {
@@ -27,6 +36,7 @@ class PrioritizedCallFactoryTest {
     private lateinit var callDispatcher: CallDispatcher
     private lateinit var factory: PrioritizedCallFactory
     private lateinit var retrofit: Retrofit
+    @Rule @JvmField val server = MockWebServer()
 
     @Before fun setup() {
         callDispatcher = spy(CallDispatcher(1))
@@ -35,6 +45,14 @@ class PrioritizedCallFactoryTest {
                 .addCallAdapterFactory(PrioritizedCallAdapterFactory.create())
                 .addConverterFactory(ToStringConverterFactory())
                 .build()
+
+        val dispatcher = object : Dispatcher() {
+            override fun dispatch(request: RecordedRequest): MockResponse {
+                return MockResponse().setResponseCode(200)
+            }
+        }
+
+        server.setDispatcher(dispatcher)
     }
 
     @Test fun createNewCallThatIsNotTheSameCall() {
@@ -46,7 +64,7 @@ class PrioritizedCallFactoryTest {
     @Test fun enqueue() {
         val oldCall = spy(retrofit.create(ExampleService::class.java).getExamples())
         val newCall = factory.createCall(oldCall, NORMAL, null)
-        newCall.enqueue(null)
+        newCall.enqueue(CallbackAdapter<String>())
 
         // Doesn't call the oldCall's enqueue method
         verify(oldCall, times(0)).enqueue(null)
@@ -97,13 +115,26 @@ class PrioritizedCallFactoryTest {
         val rCall = retrofit.create(ExampleService::class.java).getExamples()
         val call = factory.createCall(rCall, NORMAL, callbackExecutor)
         val countDownLatch = CountDownLatch(1)
+
+        val onResponseCalled = AtomicBoolean(false)
+        val onFailureCalled = AtomicBoolean(false)
+
         call.enqueue(object : CallbackAdapter<String>() {
             override fun onResponse(call: Call<String>?, response: Response<String>?) {
+                onResponseCalled.set(true)
+                countDownLatch.countDown()
+            }
+
+            override fun onFailure(call: Call<String>?, t: Throwable?) {
+                onFailureCalled.set(true)
                 countDownLatch.countDown()
             }
         })
 
         countDownLatch.await(1, TimeUnit.SECONDS)
+
+        assertThat(onResponseCalled.get()).isTrue()
+        assertThat(onFailureCalled.get()).isFalse()
         assertThat(callbackExecuted).isTrue()
     }
 
@@ -118,8 +149,14 @@ class PrioritizedCallFactoryTest {
 
         val rCall = retrofit.create(ExampleService::class.java).getExamples()
         val call = factory.createCall(rCall, NORMAL, callbackExecutor)
+
+        val onResponseCalled = AtomicBoolean(false)
         val onFailureCalled = AtomicBoolean(false)
         call.enqueue(object : CallbackAdapter<String>() {
+            override fun onResponse(call: Call<String>?, response: Response<String>?) {
+                onResponseCalled.set(true)
+            }
+
             override fun onFailure(call: Call<String>?, t: Throwable?) {
                 onFailureCalled.set(true)
             }
@@ -131,14 +168,33 @@ class PrioritizedCallFactoryTest {
         call.cancel()
         callbackRunnable?.run()
 
+        assertThat(onResponseCalled.get()).isFalse()
         assertThat(onFailureCalled.get()).isTrue()
     }
 
-    @Test fun makeSureToRemoveCallFromCallDispatcherWhenCancel() {
-        val oldCall = retrofit.create(ExampleService::class.java).getExamples()
-        val call = factory.createCall(oldCall, NORMAL, null)
-        call.cancel()
-        assertThat(call.isCanceled).isTrue()
+    @Test fun makeSureExceptionAtOnResponseCallbackWontTriggerOnFailure() {
+        val rCall = retrofit.create(ExampleService::class.java).getExamples()
+        val call = factory.createCall(rCall, NORMAL, retrofit.callbackExecutor())
+
+        val countDownLatch = CountDownLatch(1)
+        val onResponseCalled = AtomicBoolean(false)
+        val onFailureCalled = AtomicBoolean(false)
+        call.enqueue(object : CallbackAdapter<String>() {
+            override fun onResponse(call: Call<String>?, response: Response<String>?) {
+                onResponseCalled.set(true)
+                countDownLatch.countDown()
+                throw RuntimeException("error")
+            }
+
+            override fun onFailure(call: Call<String>?, t: Throwable?) {
+                onFailureCalled.set(true)
+                countDownLatch.countDown()
+            }
+        })
+
+        countDownLatch.await()
+        assertThat(onResponseCalled.get()).isTrue()
+        assertThat(onFailureCalled.get()).isFalse()
     }
 
     @Test fun dispatchErrorOnCallbackExecutor() {
@@ -152,8 +208,13 @@ class PrioritizedCallFactoryTest {
             lock.countDown()
         })
 
+        val onResponseCalled = AtomicBoolean(false)
         val onFailureCalled = AtomicBoolean(false)
         call.enqueue(object : CallbackAdapter<String>() {
+            override fun onResponse(call: Call<String>?, response: Response<String>?) {
+                onResponseCalled.set(true)
+            }
+
             override fun onFailure(call: Call<String>?, t: Throwable?) {
                 onFailureCalled.set(true)
             }
@@ -162,6 +223,7 @@ class PrioritizedCallFactoryTest {
         lock.await()
         assertThat(callbackRunnable).isNotNull()
         callbackRunnable?.run()
+        assertThat(onResponseCalled.get()).isFalse()
         assertThat(onFailureCalled.get()).isTrue()
     }
 
@@ -199,6 +261,58 @@ class PrioritizedCallFactoryTest {
 
         countDownLatch.await()
         assertThat(onFailureCalled.get()).isTrue()
+    }
+
+    @Test fun dispatchCancelRunnableWhenCancel() {
+        val lock = CountDownLatch(1)
+        val block = PrioritizedRunnableAdapter {
+            lock.await()
+        }
+        callDispatcher.dispatch(block)
+
+        val rCall = retrofit.create(ExampleService::class.java).getExamples()
+        val call = factory.createCall(rCall, HIGH, null)
+        val callToCancel = factory.createCall(rCall.clone(), NORMAL, null)
+
+        val cancelRunnableCalled = AtomicBoolean(false)
+        val error = AtomicInteger(0)
+        val countDownLatch = CountDownLatch(1)
+        call.enqueue(object: CallbackAdapter<String>(){
+            override fun onResponse(call: Call<String>?, response: Response<String>?) {
+                if (!cancelRunnableCalled.get()){
+                    error.set(1)
+                }
+                countDownLatch.countDown()
+            }
+
+            override fun onFailure(call: Call<String>?, t: Throwable?) {
+                if (!cancelRunnableCalled.get()){
+                    error.set(2)
+                }
+                countDownLatch.countDown()
+            }
+
+        })
+        callToCancel.enqueue(object: CallbackAdapter<String>(){
+            override fun onResponse(call: Call<String>?, response: Response<String>?) {
+                error.set(3)
+            }
+
+            override fun onFailure(call: Call<String>?, t: Throwable?) {
+                cancelRunnableCalled.set(true)
+            }
+        })
+        try {
+            assertThat(callDispatcher.isIdle()).isFalse()
+            callToCancel.cancel()
+        } finally {
+            lock.countDown()
+        }
+
+        countDownLatch.await(100, TimeUnit.MILLISECONDS)
+        if (error.get() > 0) {
+            fail("Don't expect callback(${error.get()}) to call")
+        }
     }
 
     private interface ExampleService {
