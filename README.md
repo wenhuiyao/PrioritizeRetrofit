@@ -2,6 +2,8 @@
 
 ##### Usage:
 
+Add `PrioritizedCallAdapterFactory` to the retrofit instance, then 
+
 ```java
   public interface ExampleService {
       @Priority(Priorities.HIGH) // add priority annotation, that's it
@@ -9,6 +11,9 @@
       Call<String> getExamples();
   }
 ```
+
+If the return type is not `Call`, use `PrioritizedCallFactory` to create a new Call instance that 
+support request priority
 
 
 
