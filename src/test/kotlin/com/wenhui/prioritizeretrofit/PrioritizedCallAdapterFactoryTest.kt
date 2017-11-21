@@ -1,4 +1,4 @@
-package org.wenhui.prioritizeretrofit
+package com.wenhui.prioritizeretrofit
 
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockWebServer
@@ -12,8 +12,8 @@ import retrofit2.http.POST
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.RecordedRequest
 import org.assertj.core.api.Assertions.assertThat
-import org.wenhui.prioritizeretrofit.helpers.CallbackAdapter
-import org.wenhui.prioritizeretrofit.helpers.ToStringConverterFactory
+import com.wenhui.prioritizeretrofit.helpers.CallbackAdapter
+import com.wenhui.prioritizeretrofit.helpers.ToStringConverterFactory
 import retrofit2.Response
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type

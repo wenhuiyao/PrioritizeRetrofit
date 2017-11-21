@@ -1,4 +1,4 @@
-package org.wenhui.prioritizeretrofit
+package com.wenhui.prioritizeretrofit
 
 import retrofit2.Call
 import retrofit2.Callback

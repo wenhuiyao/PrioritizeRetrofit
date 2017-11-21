@@ -1,4 +1,4 @@
-package org.wenhui.prioritizeretrofit
+package com.wenhui.prioritizeretrofit
 
 import android.os.Build
 import android.os.Process

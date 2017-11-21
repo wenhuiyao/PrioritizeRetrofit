@@ -1,9 +1,9 @@
-package org.wenhui.prioritizeretrofit
+package com.wenhui.prioritizeretrofit
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test
-import org.wenhui.prioritizeretrofit.helpers.PrioritizedRunnableAdapter
+import com.wenhui.prioritizeretrofit.helpers.PrioritizedRunnableAdapter
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit

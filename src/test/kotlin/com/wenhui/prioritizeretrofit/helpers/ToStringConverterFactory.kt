@@ -1,4 +1,4 @@
-package org.wenhui.prioritizeretrofit.helpers
+package com.wenhui.prioritizeretrofit.helpers
 
 import okhttp3.MediaType
 import okhttp3.RequestBody

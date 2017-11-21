@@ -1,4 +1,4 @@
-package org.wenhui.prioritizeretrofit
+package com.wenhui.prioritizeretrofit
 
 import junit.framework.Assert.fail
 import okhttp3.mockwebserver.Dispatcher
@@ -14,10 +14,10 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import org.wenhui.prioritizeretrofit.Priorities.HIGH
-import org.wenhui.prioritizeretrofit.helpers.CallbackAdapter
-import org.wenhui.prioritizeretrofit.helpers.ToStringConverterFactory
-import org.wenhui.prioritizeretrofit.helpers.any
+import com.wenhui.prioritizeretrofit.Priorities.HIGH
+import com.wenhui.prioritizeretrofit.helpers.CallbackAdapter
+import com.wenhui.prioritizeretrofit.helpers.ToStringConverterFactory
+import com.wenhui.prioritizeretrofit.helpers.any
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.Retrofit
@@ -26,8 +26,8 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-import org.wenhui.prioritizeretrofit.Priorities.NORMAL
-import org.wenhui.prioritizeretrofit.helpers.PrioritizedRunnableAdapter
+import com.wenhui.prioritizeretrofit.Priorities.NORMAL
+import com.wenhui.prioritizeretrofit.helpers.PrioritizedRunnableAdapter
 import java.util.concurrent.atomic.AtomicInteger
 
 

@@ -1,4 +1,4 @@
-package org.wenhui.prioritizeretrofit.helpers
+package com.wenhui.prioritizeretrofit.helpers
 
 import org.mockito.Mockito
 

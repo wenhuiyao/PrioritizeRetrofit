@@ -1,4 +1,4 @@
-package org.wenhui.prioritizeretrofit
+package com.wenhui.prioritizeretrofit
 
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.PriorityBlockingQueue
