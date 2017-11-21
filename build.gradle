@@ -22,19 +22,6 @@ version '1.0.0'
 
 sourceCompatibility = 1.7
 
-ext {
-    bintrayUser = null
-    bintrayApiKey = null
-
-    if (hasProperty("BINTRAY_API_USER")) {
-        bintrayUser = BINTRAY_API_USER
-    }
-
-    if (hasProperty("BINTRAY_API_KEY")) {
-        bintrayApiKey = BINTRAY_API_KEY
-    }
-}
-
 repositories {
     mavenCentral()
     jcenter()
@@ -51,7 +38,6 @@ dependencies {
     testCompile 'com.squareup.okhttp3:mockwebserver:3.8.1'
     testCompile 'org.mockito:mockito-core:2.7.22'
 }
-
 
 //required for jcenter
 task sourcesJar(type: Jar, dependsOn: classes) {
@@ -90,6 +76,8 @@ publishing {
 // ./gradlew clean
 // ./gradlew build bintrayUpload
 bintray {
+    def bintrayUser = System.env.BINTRAY_API_USER
+    def bintrayApiKey = System.env.BINTRAY_API_KEY
     if (bintrayUser == null || bintrayApiKey == null) {
         Properties properties = new Properties()
         properties.load(project.rootProject.file('local.properties').newDataInputStream())
