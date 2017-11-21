@@ -22,6 +22,19 @@ version '1.0.0'
 
 sourceCompatibility = 1.7
 
+ext {
+    bintrayUser = null
+    bintrayApiKey = null
+
+    if (hasProperty("BINTRAY_API_USER")) {
+        bintrayUser = BINTRAY_API_USER
+    }
+
+    if (hasProperty("BINTRAY_API_KEY")) {
+        bintrayApiKey = BINTRAY_API_KEY
+    }
+}
+
 repositories {
     mavenCentral()
     jcenter()
@@ -73,14 +86,19 @@ publishing {
     }
 }
 
-Properties properties = new Properties()
-properties.load(project.rootProject.file('local.properties').newDataInputStream())
 // To upload a new version
 // ./gradlew clean
 // ./gradlew build bintrayUpload
 bintray {
-    user = properties.getProperty("bintray.user")
-    key = properties.getProperty("bintray.apikey")
+    if (bintrayUser == null || bintrayApiKey == null) {
+        Properties properties = new Properties()
+        properties.load(project.rootProject.file('local.properties').newDataInputStream())
+        bintrayUser = properties.getProperty("bintray.user")
+        bintrayApiKey = properties.getProperty("bintray.apikey")
+    }
+
+    user = bintrayUser
+    key = bintrayApiKey
     publications = ['MyPublication']
     pkg {
         repo = 'snapshot'
