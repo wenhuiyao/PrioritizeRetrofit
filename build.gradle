@@ -18,7 +18,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'kotlin'
 
 group 'com.wenhui'
-version '1.0.0'
+version '0.9.9.1'
 
 sourceCompatibility = 1.7
 
@@ -59,9 +59,8 @@ artifacts {
 publishing {
     publications {
         MyPublication(MavenPublication) {
-            groupId group
             artifactId 'prioritizeretrofitadapter'
-            version project.version
+            from components.java
             artifact sourcesJar {
                 classifier = 'sources'
             }

@@ -25,4 +25,3 @@ branches:
   only:
   - master
   - develop
-  - ci
