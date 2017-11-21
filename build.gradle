@@ -1,6 +1,3 @@
-group 'wenhui.org'
-version '1.0-SNAPSHOT'
-
 buildscript {
     ext.kotlin_version = '1.1.60'
 
@@ -13,8 +10,15 @@ buildscript {
     }
 }
 
-apply plugin: 'java'
+plugins {
+    id 'com.jfrog.bintray' version '1.7.3'
+}
+
+apply plugin: 'maven-publish'
 apply plugin: 'kotlin'
+
+group 'com.wenhui'
+version '1.0.0'
 
 sourceCompatibility = 1.7
 
@@ -33,5 +37,64 @@ dependencies {
     testCompile 'org.assertj:assertj-core:2.8.0'
     testCompile 'com.squareup.okhttp3:mockwebserver:3.8.1'
     testCompile 'org.mockito:mockito-core:2.7.22'
-    
+}
+
+
+//required for jcenter
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+//required for jcenter
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar //required for jcenter
+    archives javadocJar //required for jcenter
+}
+
+publishing {
+    publications {
+        MyPublication(MavenPublication) {
+            groupId group
+            artifactId 'prioritizeretrofitadapter'
+            version project.version
+            artifact sourcesJar {
+                classifier = 'sources'
+            }
+            artifact javadocJar {
+                classifier = 'javadoc'
+            }
+        }
+    }
+}
+
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+// To upload a new version
+// ./gradlew clean
+// ./gradlew build bintrayUpload
+bintray {
+    user = properties.getProperty("bintray.user")
+    key = properties.getProperty("bintray.apikey")
+    publications = ['MyPublication']
+    pkg {
+        repo = 'snapshot'
+        name = 'prioritizedretrofitadapter'
+        desc = 'Adapt Retrofit Call to support request priority'
+        licenses = ["Apache-2.0"]
+        websiteUrl = "https://github.com/wenhuiyao/PrioritizeRetrofit"
+        vcsUrl = "https://github.com/wenhuiyao/PrioritizeRetrofit"
+        issueTrackerUrl = "https://github.com/wenhuiyao/PrioritizeRetrofit/issues"
+        publish = true
+        version {
+            name = project.version
+            released = new Date()
+            vcsTag = "v${project.version}"
+        }
+    }
 }
