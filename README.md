@@ -1,4 +1,4 @@
-![Build Status](https://travis-ci.org/wenhuiyao/PrioritizeRetrofit.svg?branch=master)
+[![Build Status](https://travis-ci.org/wenhuiyao/PrioritizeRetrofit.svg?branch=master)](https://travis-ci.org/wenhuiyao/PrioritizeRetrofit)
 
 ##### Adapt a [Retrofit](http://square.github.io/retrofit/) async call to support request priority
 
