@@ -10,16 +10,13 @@ import java.util.concurrent.Executor
  * Create prioritized call instance base on [Call] instance from Retrofit, which addes priority to the call instance
  * when calling [Call.enqueue].
  *
- * If you are use [Call] for your service, you should consider [PrioritizedCallAdapterFactory] instead
- *
- * *NOTE: the new call instance will not go through [okhttp3.Dispatcher], instead, it will go through [CallDispatcher],
- * so [okhttp3.Dispatcher] will no longer report the correct queued and running call counts.*
+ * If return type of service method is [Call], use [PrioritizedCallAdapterFactory] instead
  */
-class PrioritizedCallFactory private constructor(private val dispatcher: CallDispatcher) {
+class PrioritizedCallFactory private constructor(private val dispatcher: AsyncCallDispatcher) {
 
     companion object {
-        @JvmStatic fun create() = PrioritizedCallFactory(CallDispatcher())
-        @JvmStatic fun create(dispatcher: CallDispatcher) = PrioritizedCallFactory(dispatcher)
+        @JvmStatic fun create() = PrioritizedCallFactory(AsyncCallDispatcher())
+        @JvmStatic fun create(dispatcher: AsyncCallDispatcher) = PrioritizedCallFactory(dispatcher)
     }
 
     /**
@@ -36,7 +33,7 @@ class PrioritizedCallFactory private constructor(private val dispatcher: CallDis
 
 private class PrioritizedCall<T>(private val realCall: Call<T>,
                                  override val priority: Priorities,
-                                 private val dispatcher: CallDispatcher,
+                                 private val dispatcher: AsyncCallDispatcher,
                                  private val callbackExecutor: Executor?) : Call<T> by realCall, PrioritizedRunnable {
 
     private var callback: Callback<T>? = null

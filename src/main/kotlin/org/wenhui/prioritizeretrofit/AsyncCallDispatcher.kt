@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit
 /**
  * Policy on when a call will be executed
  */
-class CallDispatcher(threadPoolSize: Int) {
+class AsyncCallDispatcher(threadPoolSize: Int) {
 
     constructor(): this(PLATFORM.corePoolSize())
 
@@ -37,7 +37,7 @@ class CallDispatcher(threadPoolSize: Int) {
         return queue.remove(runnable)
     }
 
-    fun isIdle(): Boolean = queue.isEmpty()
+    internal fun isReadyQueueEmpty(): Boolean = queue.isEmpty()
 }
 
 internal interface PrioritizedRunnable : Runnable {

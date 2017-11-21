@@ -33,13 +33,13 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class PrioritizedCallFactoryTest {
 
-    private lateinit var callDispatcher: CallDispatcher
+    private lateinit var callDispatcher: AsyncCallDispatcher
     private lateinit var factory: PrioritizedCallFactory
     private lateinit var retrofit: Retrofit
     @Rule @JvmField val server = MockWebServer()
 
     @Before fun setup() {
-        callDispatcher = spy(CallDispatcher(1))
+        callDispatcher = spy(AsyncCallDispatcher(1))
         factory = PrioritizedCallFactory.create(callDispatcher)
         retrofit = Retrofit.Builder().baseUrl("http://www.example.com")
                 .addCallAdapterFactory(PrioritizedCallAdapterFactory.create())
@@ -303,7 +303,7 @@ class PrioritizedCallFactoryTest {
             }
         })
         try {
-            assertThat(callDispatcher.isIdle()).isFalse()
+            assertThat(callDispatcher.isReadyQueueEmpty()).isFalse()
             callToCancel.cancel()
         } finally {
             lock.countDown()

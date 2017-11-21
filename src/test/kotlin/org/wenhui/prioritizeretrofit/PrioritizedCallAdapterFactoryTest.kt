@@ -30,7 +30,7 @@ class PrioritizedCallAdapterFactoryTest {
 
     @Before fun setup()  {
        retrofit = Retrofit.Builder().baseUrl("http://www.example.com")
-               .addCallAdapterFactory(PrioritizedCallAdapterFactory.create(CallDispatcher(1)))
+               .addCallAdapterFactory(PrioritizedCallAdapterFactory.create(AsyncCallDispatcher(1)))
                .addConverterFactory(ToStringConverterFactory())
                .build()
 

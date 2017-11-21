@@ -9,12 +9,12 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
-class CallDispatcherTest {
+class AsyncCallDispatcherTest {
 
-    private lateinit var dispatcher: CallDispatcher
+    private lateinit var dispatcher: AsyncCallDispatcher
 
     @Before fun setup() {
-        dispatcher = CallDispatcher(1)
+        dispatcher = AsyncCallDispatcher(1)
     }
 
     @Test fun dispatch() {
@@ -43,13 +43,13 @@ class CallDispatcherTest {
         dispatcher.dispatch(runnable2)
 
         try {
-            assertThat(dispatcher.isIdle()).isFalse()
+            assertThat(dispatcher.isReadyQueueEmpty()).isFalse()
         } finally {
             lock.countDown()
         }
 
         countDownLatch.await()
-        assertThat(dispatcher.isIdle()).isTrue()
+        assertThat(dispatcher.isReadyQueueEmpty()).isTrue()
     }
 
     @Test fun remove() {

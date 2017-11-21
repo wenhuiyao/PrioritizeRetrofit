@@ -18,10 +18,6 @@ import java.util.concurrent.Executor
  *     fun getFoo(): Call<String>
  * }
  * ```
- *
- * *NOTE: the asynchronous [Call.enqueue] will no longer go through [okhttp3.Dispatcher], so
- * [okhttp3.Dispatcher.idleCallback] should not be used.*
- *
  */
 class PrioritizedCallAdapterFactory private constructor(private val callFactory: PrioritizedCallFactory)
     : CallAdapter.Factory() {
@@ -31,7 +27,7 @@ class PrioritizedCallAdapterFactory private constructor(private val callFactory:
             return PrioritizedCallAdapterFactory(PrioritizedCallFactory.create())
         }
 
-        @JvmStatic fun create(dispatcher: CallDispatcher): PrioritizedCallAdapterFactory {
+        @JvmStatic fun create(dispatcher: AsyncCallDispatcher): PrioritizedCallAdapterFactory {
             return PrioritizedCallAdapterFactory(PrioritizedCallFactory.create(dispatcher))
         }
     }
