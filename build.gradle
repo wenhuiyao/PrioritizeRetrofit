@@ -101,8 +101,8 @@ bintray {
     key = bintrayApiKey
     publications = ['MyPublication']
     pkg {
-        repo = 'snapshot'
-        name = 'prioritizedretrofitadapter'
+        repo = System.env.BINTRAY_API_USER != null ? System.env.RELEASE_REPO : 'snapshot'
+        name = 'prioritizeretrofitadapter'
         desc = 'Adapt Retrofit Call to support request priority'
         licenses = ["Apache-2.0"]
         websiteUrl = "https://github.com/wenhuiyao/PrioritizeRetrofit"
