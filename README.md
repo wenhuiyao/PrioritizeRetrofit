@@ -27,7 +27,7 @@ supports request priority
 ##### Gradle
 
 ```
-    compile 'com.wenhui:prioritizeretrofitadapter:1.0.0'
+    compile 'com.wenhui:prioritizeretrofitadapter:1.0.1'
 
 ```
 
