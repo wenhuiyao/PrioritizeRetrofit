@@ -8,16 +8,18 @@ import java.lang.reflect.Type
 import java.util.concurrent.Executor
 
 /**
- * A [retrofit2.CallAdapter.Factory] that adapts a call instance, and return a prioritized call instance.
+ * A [CallAdapter.Factory] that adapts a call instance, and return a prioritized call instance.
  *
  * Usage:
  * ```
  * interface FooService {
- *     @Priority(PRIORITY.HIGH) // add priority annotation, that's it
+ *     @Priority(Priorities.HIGH) // <-- add priority annotation, that's it
  *     @GET("/foo")
  *     fun getFoo(): Call<String>
  * }
  * ```
+ *
+ * *NOTE: only asynchronous call will support priority*
  */
 class PrioritizedCallAdapterFactory private constructor(private val callFactory: PrioritizedCallFactory)
     : CallAdapter.Factory() {

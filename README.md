@@ -32,7 +32,7 @@ supports request priority
 ```
 
 
-##### *NOTE: only asynchonou call will be prioritized, synchronous call will not. Recommend benchmarking your service before using this since OkHttp client is optimize for multiple requests.*
+##### *NOTE: only asynchronous call will support priority, synchronous call will not. Recommend benchmarking your service before using this since OkHttp client is optimize for multiple requests.*
 
 
 
