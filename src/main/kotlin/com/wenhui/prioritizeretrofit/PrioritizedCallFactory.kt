@@ -7,7 +7,7 @@ import java.io.IOException
 import java.util.concurrent.Executor
 
 /**
- * Create prioritized call instance base on [Call] instance from Retrofit, which addes priority to the call instance
+ * Create prioritized call instance base on [Call] instance from Retrofit, which adds priority to the call instance
  * when calling [Call.enqueue].
  *
  * If return type of service method is [Call], use [PrioritizedCallAdapterFactory] instead

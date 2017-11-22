@@ -2,7 +2,7 @@
 
 ##### Adapt a [Retrofit](http://square.github.io/retrofit/) async call to support request priority
 
-##### Example:
+#### Example:
 
 ```java
     private void initRetrofit() {
@@ -24,12 +24,28 @@
 If the return type is not `Call`, use `PrioritizedCallFactory` to create a new Call instance that 
 supports request priority
 
+#### Download
+
+An artifact is published to `jcenter`, you can use with 
+
 ##### Gradle
 
 ```
     compile 'com.wenhui:prioritizeretrofitadapter:1.0.1'
 
 ```
+
+##### Maven
+
+```xml
+    <dependency> 
+        <groupId>com.wenhui</groupId>
+        <artifactId>prioritizeretrofitadapter</artifactId> 
+        <version>1.0.1</version> 
+        <type>pom</type> 
+    </dependency>
+```
+    
 
 
 ##### *NOTE: only asynchronous call will support priority, synchronous call will not. Recommend benchmarking your service before using this since OkHttp client is optimize for multiple requests.*

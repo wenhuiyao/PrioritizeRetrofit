@@ -23,7 +23,7 @@ class AsyncCallDispatcher(threadPoolSize: Int) {
         queue = PriorityBlockingQueue(threadPoolSize, Comparator<Runnable> { o1, o2 ->
             val left = o1 as PrioritizedRunnable
             val right = o2 as PrioritizedRunnable
-            right.priority.value - left.priority.value
+            Integer.compare(right.priority.value, left.priority.value)
         })
 
         executor = ThreadPoolExecutor(threadPoolSize, threadPoolSize, 0, TimeUnit.SECONDS, queue, PLATFORM.threadFactory())

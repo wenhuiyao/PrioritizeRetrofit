@@ -7,9 +7,6 @@ package com.wenhui.prioritizeretrofit
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
 @MustBeDocumented
-/**
- * @param value Priority value
- */
 annotation class Priority(val value: Priorities)
 
 /**
