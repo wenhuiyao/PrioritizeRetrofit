@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import com.wenhui.prioritizeretrofit.Priorities.NORMAL
 import com.wenhui.prioritizeretrofit.helpers.PrioritizedRunnableAdapter
+import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 
 
@@ -313,6 +314,28 @@ class PrioritizedCallFactoryTest {
         if (error.get() > 0) {
             fail("Don't expect callback(${error.get()}) to call")
         }
+    }
+
+    @Test fun nameThreadBaseOnPriority() {
+        val oldCall = spy(retrofit.create(ExampleService::class.java).getExamples())
+        val countDownLatch = CountDownLatch(1)
+        var threadName = ""
+        val callWrapper = object: Call<String> by oldCall {
+            override fun execute(): Response<String> {
+                threadName = Thread.currentThread().name
+                try {
+                    return oldCall.execute()
+                } finally {
+                    countDownLatch.countDown()
+                }
+            }
+        }
+
+        val newCall = factory.createCall(callWrapper, NORMAL, null)
+        newCall.enqueue(CallbackAdapter<String>())
+        countDownLatch.await()
+
+        assertThat(threadName).isEqualTo("PrioritizedCall: http://www.example.com/...")
     }
 
     private interface ExampleService {

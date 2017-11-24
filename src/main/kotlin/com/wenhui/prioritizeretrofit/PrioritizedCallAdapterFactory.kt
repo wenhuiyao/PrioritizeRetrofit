@@ -44,12 +44,12 @@ class PrioritizedCallAdapterFactory private constructor(private val callFactory:
         }
 
         val responseType = CallAdapter.Factory.getParameterUpperBound(0, returnType)
-        return PrioritizeCallAdapter<Any>(responseType, annotations, callFactory, retrofit.callbackExecutor())
+        return PrioritizeCallAdapter<Any>(responseType, callFactory, annotations, retrofit.callbackExecutor())
     }
 
     private class PrioritizeCallAdapter<R>(private val type: Type,
-                                           private val annotations: Array<out Annotation>?,
                                            private val factory: PrioritizedCallFactory,
+                                           private val annotations: Array<out Annotation>?,
                                            private val callbackExecutor: Executor?) : CallAdapter<R, Call<R>> {
 
         override fun responseType(): Type = type

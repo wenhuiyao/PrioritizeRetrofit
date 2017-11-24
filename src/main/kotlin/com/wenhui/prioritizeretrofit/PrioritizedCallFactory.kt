@@ -71,7 +71,11 @@ private class PrioritizedCall<T>(private val realCall: Call<T>,
                 // to avoid any temporarily memory leak
                 override val priority = Priorities.HIGHEST
 
-                override fun run() = onFailure(CancelException())
+                override fun run() {
+                    executeOnNamedThread {
+                        onFailure(CancelException())
+                    }
+                }
             })
         }
     }
@@ -79,25 +83,38 @@ private class PrioritizedCall<T>(private val realCall: Call<T>,
     override fun clone(): Call<T> = PrioritizedCall(realCall.clone(), priority, dispatcher, callbackExecutor)
 
     override fun run() {
-        if (isCanceled) {
-            onFailure(CancelException())
-            return
-        }
+        executeOnNamedThread {
+            if (isCanceled) {
+                onFailure(CancelException())
+                return
+            }
 
-        var response: Response<T>? = null
+            var response: Response<T>? = null
+            try {
+                response = realCall.execute()
+            } catch (error: Throwable) {
+                onFailure(error)
+            }
+
+            response?.let { onResponse(it) }
+        }
+    }
+
+    private inline fun executeOnNamedThread(block: () -> Unit) {
+        val currentThread = Thread.currentThread()
+        val oldName = currentThread.name
         try {
-            response = realCall.execute()
-        } catch (error: Throwable) {
-            onFailure(error)
+            currentThread.name = "PrioritizedCall: ${realCall.request().url().redact()}"
+            block()
+        } finally {
+            currentThread.name = oldName
         }
-
-        response?.let { onResponse(it) }
     }
 
     private fun onResponse(response: Response<T>) {
         val cb = callback ?: return
         callbackExecutor?.execute {
-            if (realCall.isCanceled) {
+            if (isCanceled) {
                 cb.onFailure(this, CancelException())
             } else {
                 cb.onResponse(this, response)
@@ -114,4 +131,4 @@ private class PrioritizedCall<T>(private val realCall: Call<T>,
 
 }
 
-private class CancelException : IOException("Cancelled!")
+private class CancelException : IOException("Canceled")

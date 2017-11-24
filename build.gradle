@@ -20,7 +20,7 @@ apply plugin: 'kotlin'
 apply plugin: 'org.jetbrains.dokka'
 
 group 'com.wenhui'
-version '1.0.1'
+version '1.0.2'
 
 sourceCompatibility = 1.7
 
