@@ -101,7 +101,13 @@ bintray {
     key = bintrayApiKey
     publications = ['MyPublication']
     pkg {
-        repo = System.env.RELEASE_REPO != null ? System.env.RELEASE_REPO : 'snapshot'
+        def remoteRepo
+        if (project.hasProperty('uploadRepo')){
+            remoteRepo = property('uploadRepo')
+        } else {
+            remoteRepo = System.env.RELEASE_REPO != null ? System.env.RELEASE_REPO : 'snapshot'
+        }
+        repo = remoteRepo
         name = 'prioritizeretrofitadapter'
         desc = 'Adapt Retrofit Call to support request priority'
         licenses = ["Apache-2.0"]
