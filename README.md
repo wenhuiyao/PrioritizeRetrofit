@@ -31,7 +31,7 @@ An artifact is published to `jcenter`, you can use with
 ##### Gradle
 
 ```
-    compile 'com.wenhui:prioritizeretrofitadapter:1.0.1'
+    compile 'com.wenhui:prioritizeretrofitadapter:1.0.2'
 
 ```
 
@@ -41,7 +41,7 @@ An artifact is published to `jcenter`, you can use with
     <dependency> 
         <groupId>com.wenhui</groupId>
         <artifactId>prioritizeretrofitadapter</artifactId> 
-        <version>1.0.1</version> 
+        <version>1.0.2</version> 
         <type>pom</type> 
     </dependency>
 ```
