@@ -4,25 +4,25 @@ jdk:
   - oraclejdk8
 
 script:
-- ./gradlew clean check
+  - ./gradlew clean check
 
 before_deploy:
   - chmod +x .buildscript/deploy.sh
   - chmod +x .buildscript/deploy_snapshot.sh
 
 deploy:
-  provider: script
-  script: .buildscript/deploy.sh
-  skip_cleanup: true
-  on:
-    branch: master
-
-deploy:
-  provider: script
-  script: .buildscript/deploy_snapshot.sh
-  skip_cleanup: true
-  on:
-    branch: snapshot
+  # deploy release build to maven repo
+  - provider: script
+    script: .buildscript/deploy.sh
+    skip_cleanup: true
+    on:
+      branch: master
+  # deploy snapshot build to snapshot repo
+  - provider: script
+    script: .buildscript/deploy_snapshot.sh
+    skip_cleanup: true
+    on:
+      branch: snapshot
 
 cache:
   directories:
